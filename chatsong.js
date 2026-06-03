@@ -1,5 +1,4 @@
-<script>
-/* ChatSong Widgets v4.7 - Volledig Hersteld & Geoptimaliseerd */
+/* ChatSong Widgets v4.8 - Ultiem Hersteld & Oneindige Lus Gefixt */
 (function(){
 "use strict";
 
@@ -9,10 +8,12 @@ var SHEETS_URL = "https://script.google.com/macros/s/AKfycbx8Cg-TxX1zhMooAeNimFe
 var AU = ["soundcloud.com","clyp.it","vocaroo.com","hearthis.at","audiomack.com","bandcamp.com","mixcloud.com","deezer.com"];
 var YU = ["youtube.com","youtu.be","vimeo.com","dailymotion.com"];
 
-console.log("[ChatSong] v4.7 engine armed and connected.");
+console.log("[ChatSong] v4.8 engine armed and secured against loops.");
 
 function sheetGet(action, artist) {
-  return fetch(SHEETS_URL + "?action=" + action + "&artist=" + encodeURIComponent(artist)).then(function(r){return r.json();});
+  return fetch(SHEETS_URL + "?action=" + action + "&artist=" + encodeURIComponent(artist))
+    .then(function(r){return r.json();})
+    .catch(function(e){ console.error("[ChatSong] Get error:", e); });
 }
 
 function sheetPost(data) {
@@ -20,7 +21,9 @@ function sheetPost(data) {
     method: "POST",
     headers: {"Content-Type": "text/plain"},
     body: JSON.stringify(data)
-  }).then(function(r){return r.json();});
+  })
+  .then(function(r){return r.json();})
+  .catch(function(e){ console.error("[ChatSong] Post error:", e); });
 }
 
 function addVoiceBtn() {
@@ -115,184 +118,201 @@ function addMusicTags() {
 }
 
 function enrichProfile() {
-  var prof = document.querySelector(".UserCard, .UserPage");
-  if (!prof || prof.querySelector(".cs-audio-bio-box")) return;
-  var bio = prof.querySelector(".UserBio, .UserCard-bio, .item-bio");
-  if (!bio) return;
-  var links = bio.querySelectorAll("a");
-  var audioLink = null;
-  links.forEach(function(a) {
-    var h = a.href.toLowerCase();
-    if (AU.some(function(d) { return h.indexOf(d) !== -1; })) audioLink = a.href;
+  var profs = document.querySelectorAll(".UserCard, .UserPage");
+  profs.forEach(function(prof) {
+    if (prof.querySelector(".cs-audio-bio-box")) return;
+    var bio = prof.querySelector(".UserBio, .UserCard-bio, .item-bio");
+    if (!bio) return;
+    var links = bio.querySelectorAll("a");
+    var audioLink = null;
+    links.forEach(function(a) {
+      var h = a.href.toLowerCase();
+      if (AU.some(function(d) { return h.indexOf(d) !== -1; })) audioLink = a.href;
+    });
+    if (!audioLink) return;
+    var box = document.createElement("div");
+    box.className = "cs-audio-bio-box";
+    box.style.cssText = "background:linear-gradient(135deg,rgba(29,185,84,.1),rgba(138,43,226,.1));border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;margin:10px 0;";
+    box.innerHTML = '<div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:flex;align-items:center;justify-content:center;font-size:20px;animation:csPulse 2s infinite">🎵</div><div style="flex:1"><div style="font-weight:700;font-size:14px">Audio Bio</div><div style="font-size:11px;color:#888">Klik om te beluisteren</div></div><a href="' + audioLink + '" target="_blank" style="background:#1DB954;border:none;border-radius:20px;padding:6px 16px;color:#fff;font-size:12px;font-weight:700;text-decoration:none">▶️ Play</a></div><style>@keyframes csPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}</style>';
+    var info = prof.querySelector(".UserCard-info, .UserPage-content");
+    if (info && info.firstChild) info.insertBefore(box, info.firstChild);
+    else bio.parentNode.insertBefore(box, bio);
   });
-  if (!audioLink) return;
-  var box = document.createElement("div");
-  box.className = "cs-audio-bio-box";
-  box.style.cssText = "background:linear-gradient(135deg,rgba(29,185,84,.1),rgba(138,43,226,.1));border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;margin:10px 0;";
-  box.innerHTML = '<div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:flex;align-items:center;justify-content:center;font-size:20px;animation:csPulse 2s infinite">🎵</div><div style="flex:1"><div style="font-weight:700;font-size:14px">Audio Bio</div><div style="font-size:11px;color:#888">Klik om te beluisteren</div></div><a href="' + audioLink + '" target="_blank" style="background:#1DB954;border:none;border-radius:20px;padding:6px 16px;color:#fff;font-size:12px;font-weight:700;text-decoration:none">▶️ Play</a></div><style>@keyframes csPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}</style>';
-  var info = prof.querySelector(".UserCard-info, .UserPage-content");
-  if (info && info.firstChild) info.insertBefore(box, info.firstChild);
-  else bio.parentNode.insertBefore(box, bio);
 }
 
 function addProfileEndorsements() {
-  var prof = document.querySelector(".UserPage, .UserCard");
-  if (!prof || prof.querySelector(".cs-endorsement-wall")) return;
+  var profs = document.querySelectorAll(".UserPage, .UserCard");
+  profs.forEach(function(prof) {
+    var usernameEl = prof.querySelector(".username");
+    if (!usernameEl) return;
+    var username = usernameEl.textContent.trim();
 
-  var usernameEl = prof.querySelector(".username");
-  var username = usernameEl ? usernameEl.textContent.trim() : "user";
-  var visitorId = localStorage.getItem("cs-visitor") || "v_" + Math.random().toString(36).substr(2,9);
-  localStorage.setItem("cs-visitor", visitorId);
-  var myRating = parseInt(localStorage.getItem("cs-my-rating-" + username)) || 0;
-  var myEmojis = JSON.parse(localStorage.getItem("cs-my-emojis-" + username) || "[]");
-
-  var emojis = [
-    {e:"🔥",n:"Fire",c:"#ff5500"},
-    {e:"❤️",n:"Love",c:"#ff4444"},
-    {e:"🎵",n:"Banger",c:"#1DB954"},
-    {e:"👏",n:"Respect",c:"#8A2BE2"},
-    {e:"🎤",n:"Vocals",c:"#ff69b4"},
-    {e:"🎧",n:"Producer",c:"#00bfff"},
-    {e:"🚀",n:"Next Level",c:"#ffd700"}
-  ];
-
-  var wall = document.createElement("div");
-  wall.className = "cs-endorsement-wall";
-  wall.style.cssText = "margin-top:16px;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;overflow:hidden;clear:both;text-align:left;";
-
-  var header = document.createElement("div");
-  header.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;";
-  header.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">🏆</span><div><div style="font-weight:800;font-size:15px;color:#fff;">Artist Endorsements</div><div style="font-size:11px;color:#888;">Community powered</div></div></div>';
-  wall.appendChild(header);
-
-  var starSection = document.createElement("div");
-  starSection.style.cssText = "margin-bottom:16px;padding:14px;background:rgba(0,0,0,.2);border-radius:12px;";
-  starSection.innerHTML = '<div style="display:flex;align-items:center;gap:14px;"><div style="text-align:center;min-width:60px;"><div style="font-size:32px;font-weight:900;color:#FFD700;line-height:1;" id="cs-avg-' + username + '">—</div><div style="font-size:10px;color:#888;margin-top:2px;" id="cs-count-' + username + '">loading...</div></div><div style="flex:1;"><div style="display:flex;gap:3px;font-size:24px;margin-bottom:6px;" id="cs-stars-' + username + '"><span class="cs-star" data-val="1" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="2" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="3" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="4" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="5" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span></div><div style="font-size:12px;color:#aaa;" id="cs-rating-label-' + username + '">Klik op de sterren om te stemmen</div></div></div>';
-  wall.appendChild(starSection);
-
-  var emojiSection = document.createElement("div");
-  emojiSection.style.cssText = "margin-bottom:16px;";
-  var emojiHTML = '<div style="font-size:12px;color:#aaa;margin-bottom:10px;font-weight:600;">Community Badges:</div><div style="display:flex;flex-wrap:wrap;gap:8px;" id="cs-emoji-bar-' + username + '">';
-  emojis.forEach(function(em) {
-    emojiHTML += '<button class="cs-emoji-btn" data-emoji="' + em.e + '" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#ddd;border-radius:24px;padding:7px 14px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;font-weight:700;font-family:inherit;"><span style="font-size:18px;">' + em.e + '</span><span>' + em.n + '</span><span style="background:rgba(0,0,0,.3);padding:2px 7px;border-radius:10px;font-size:11px;min-width:18px;text-align:center;color:#fff;" id="cs-ec-' + username + '-' + em.e + '">—</span></button>';
-  });
-  emojiHTML += '</div>';
-  emojiSection.innerHTML = emojiHTML;
-  wall.appendChild(emojiSection);
-
-  var shoutSection = document.createElement("div");
-  shoutSection.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="font-size:12px;color:#aaa;font-weight:600;">Fan Shoutouts:</div><button id="cs-shout-btn-' + username + '" style="background:rgba(29,185,84,.15);border:1px solid #1DB954;color:#1DB954;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Drop a shout</button></div><div id="cs-shout-grid-' + username + '" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:220px;overflow-y:auto;padding-right:4px;"><div style="text-align:center;color:#666;font-size:12px;padding:20px;">Laden...</div></div><div id="cs-shout-form-' + username + '" style="display:none;margin-top:12px;"><div style="display:flex;gap:8px;align-items:stretch;"><input type="text" id="cs-shout-input-' + username + '" maxlength="60" placeholder="Type iets leuks..." style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;"><button id="cs-shout-submit-' + username + '" style="background:#1DB954;border:none;border-radius:10px;padding:10px 16px;color:#fff;font-weight:800;cursor:pointer;font-size:13px;font-family:inherit;">Post</button></div><div style="font-size:10px;color:#666;margin-top:4px;">Max 60 karakters</div></div>';
-  wall.appendChild(shoutSection);
-
-  var bioItem = prof.querySelector(".item-bio, .UserBio");
-  if (bioItem) {
-    bioItem.parentNode.insertBefore(wall, bioItem.nextSibling);
-  } else {
-    var fallback = prof.querySelector(".UserCard-info, .UserPage-content, .UserCard-profile");
-    if (fallback) fallback.appendChild(wall); else prof.appendChild(wall);
-  }
-
-  loadData(username, myRating, myEmojis, emojis, visitorId);
-
-  var stars = wall.querySelectorAll(".cs-star");
-  stars.forEach(function(star) {
-    star.addEventListener("click", function() {
-      var val = parseInt(this.dataset.val);
-      sheetPost({action:"rate", artist:username, visitor_id:visitorId, rating:val}).then(function(){
-        localStorage.setItem("cs-my-rating-" + username, val);
-        myRating = val;
-        stars.forEach(function(s, idx) {
-          s.style.color = idx < val ? "#FFD700" : "#444";
-          s.style.textShadow = idx < val ? "0 0 8px rgba(255,215,0,.4)" : "none";
-        });
-        var lbl = document.getElementById("cs-rating-label-" + username);
-        if (lbl) lbl.textContent = "Je hebt dit profiel beoordeeld met " + val + "★";
-        return sheetGet("getRatings", username);
-      }).then(function(data){
-        var avgEl = document.getElementById("cs-avg-" + username);
-        var countEl = document.getElementById("cs-count-" + username);
-        if (avgEl) avgEl.textContent = data.avg;
-        if (countEl) countEl.textContent = data.count + " beoordelingen";
-      });
-    });
-    star.addEventListener("mouseenter", function() {
-      var val = parseInt(this.dataset.val);
-      stars.forEach(function(s, idx) { s.style.color = idx < val ? "#FFD700" : "#444"; });
-    });
-    star.addEventListener("mouseleave", function() {
-      stars.forEach(function(s, idx) { s.style.color = idx < myRating ? "#FFD700" : "#444"; });
-    });
-  });
-
-  var emojiBtns = wall.querySelectorAll(".cs-emoji-btn");
-  emojiBtns.forEach(function(btn) {
-    btn.addEventListener("click", function() {
-      var em = this.dataset.emoji;
-      var emData = emojis.find(function(e) { return e.e === em; });
-      if (!emData) return;
-      var idx = myEmojis.indexOf(em);
-      var countSpan = document.getElementById("cs-ec-" + username + "-" + em);
-      var count = parseInt(countSpan.textContent) || 0;
-      if (idx > -1) {
-        myEmojis.splice(idx, 1);
-        this.style.background = "rgba(255,255,255,.04)";
-        this.style.borderColor = "rgba(255,255,255,.08)";
-        this.style.color = "#ddd";
-        count = Math.max(0, count - 1);
-        sheetPost({action:"unreact", artist:username, visitor_id:visitorId, emoji:em});
+    var existingWall = prof.querySelector(".cs-endorsement-wall");
+    if (existingWall) {
+      // SPA FIX: Als de muur van een andere gebruiker is, gooi hem weg en bouw opnieuw op!
+      if (existingWall.dataset.forUser !== username) {
+        existingWall.remove();
       } else {
-        myEmojis.push(em);
-        this.style.background = emData.c + "25";
-        this.style.borderColor = emData.c + "60";
-        this.style.color = emData.c;
-        count++;
-        this.style.transform = "scale(1.15)";
-        setTimeout(function() { btn.style.transform = "scale(1)"; }, 200);
-        sheetPost({action:"react", artist:username, visitor_id:visitorId, emoji:em});
+        return; 
       }
-      localStorage.setItem("cs-my-emojis-" + username, JSON.stringify(myEmojis));
-      if (countSpan) countSpan.textContent = count;
-    });
-  });
+    }
 
-  var shoutSubmit = document.getElementById("cs-shout-submit-" + username);
-  var shoutInput = document.getElementById("cs-shout-input-" + username);
-  var shoutGrid = document.getElementById("cs-shout-grid-" + username);
-  var shoutForm = document.getElementById("cs-shout-form-" + username);
-  var shoutBtn = document.getElementById("cs-shout-btn-" + username);
-  
-  if (shoutBtn && shoutForm) {
-    shoutBtn.addEventListener("click", function() {
-      shoutForm.style.display = shoutForm.style.display === "none" ? "block" : "none";
+    var visitorId = localStorage.getItem("cs-visitor") || "v_" + Math.random().toString(36).substr(2,9);
+    localStorage.setItem("cs-visitor", visitorId);
+    var myRating = parseInt(localStorage.getItem("cs-my-rating-" + username)) || 0;
+    var myEmojis = JSON.parse(localStorage.getItem("cs-my-emojis-" + username) || "[]");
+
+    var emojis = [
+      {e:"🔥",n:"Fire",c:"#ff5500"},
+      {e:"❤️",n:"Love",c:"#ff4444"},
+      {e:"🎵",n:"Banger",c:"#1DB954"},
+      {e:"👏",n:"Respect",c:"#8A2BE2"},
+      {e:"🎤",n:"Vocals",c:"#ff69b4"},
+      {e:"🎧",n:"Producer",c:"#00bfff"},
+      {e:"🚀",n:"Next Level",c:"#ffd700"}
+    ];
+
+    var wall = document.createElement("div");
+    wall.className = "cs-endorsement-wall";
+    wall.dataset.forUser = username; // Koppel deze specifieke wand aan deze specifieke user
+    wall.style.cssText = "margin-top:16px;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;overflow:hidden;clear:both;text-align:left;";
+
+    var header = document.createElement("div");
+    header.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;";
+    header.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">🏆</span><div><div style="font-weight:800;font-size:15px;color:#fff;">Artist Endorsements</div><div style="font-size:11px;color:#888;">Community powered</div></div></div>';
+    wall.appendChild(header);
+
+    var starSection = document.createElement("div");
+    starSection.style.cssText = "margin-bottom:16px;padding:14px;background:rgba(0,0,0,.2);border-radius:12px;";
+    starSection.innerHTML = '<div style="display:flex;align-items:center;gap:14px;"><div style="text-align:center;min-width:60px;"><div style="font-size:32px;font-weight:900;color:#FFD700;line-height:1;" id="cs-avg-' + username + '">—</div><div style="font-size:10px;color:#888;margin-top:2px;" id="cs-count-' + username + '">loading...</div></div><div style="flex:1;"><div style="display:flex;gap:3px;font-size:24px;margin-bottom:6px;" id="cs-stars-' + username + '"><span class="cs-star" data-val="1" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="2" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="3" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="4" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="5" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span></div><div style="font-size:12px;color:#aaa;" id="cs-rating-label-' + username + '">Klik op de sterren om te stemmen</div></div></div>';
+    wall.appendChild(starSection);
+
+    var emojiSection = document.createElement("div");
+    emojiSection.style.cssText = "margin-bottom:16px;";
+    var emojiHTML = '<div style="font-size:12px;color:#aaa;margin-bottom:10px;font-weight:600;">Community Badges:</div><div style="display:flex;flex-wrap:wrap;gap:8px;" id="cs-emoji-bar-' + username + '">';
+    emojis.forEach(function(em) {
+      emojiHTML += '<button class="cs-emoji-btn" data-emoji="' + em.e + '" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#ddd;border-radius:24px;padding:7px 14px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;font-weight:700;font-family:inherit;"><span style="font-size:18px;">' + em.e + '</span><span>' + em.n + '</span><span style="background:rgba(0,0,0,.3);padding:2px 7px;border-radius:10px;font-size:11px;min-width:18px;text-align:center;color:#fff;" id="cs-ec-' + username + '-' + em.e + '">—</span></button>';
     });
-  }
-  if (shoutSubmit && shoutInput && shoutGrid) {
-    shoutSubmit.addEventListener("click", function() {
-      var text = shoutInput.value.trim();
-      if (!text) return;
-      sheetPost({action:"shoutout", artist:username, visitor_id:visitorId, text:text}).then(function(){
-        var div = document.createElement("div");
-        div.style.cssText = "background:#1DB95412;border:1px solid #1DB95425;border-radius:10px;padding:10px;font-size:12px;color:#ddd;";
-        div.innerHTML = '<div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">' + text + '</div><div style="font-size:10px;color:#1DB954;display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>Jij • zojuist</div>';
-        if (shoutGrid.children.length === 1 && shoutGrid.children[0].textContent.indexOf("Laden") !== -1) shoutGrid.innerHTML = "";
-        shoutGrid.appendChild(div);
-        shoutGrid.scrollTop = shoutGrid.scrollHeight;
-        shoutInput.value = "";
-        if (shoutForm) shoutForm.style.display = "none";
+    emojiHTML += '</div>';
+    emojiSection.innerHTML = emojiHTML;
+    wall.appendChild(emojiSection);
+
+    var shoutSection = document.createElement("div");
+    shoutSection.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="font-size:12px;color:#aaa;font-weight:600;">Fan Shoutouts:</div><button id="cs-shout-btn-' + username + '" style="background:rgba(29,185,84,.15);border:1px solid #1DB954;color:#1DB954;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Drop a shout</button></div><div id="cs-shout-grid-' + username + '" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:220px;overflow-y:auto;padding-right:4px;"><div style="text-align:center;color:#666;font-size:12px;padding:20px;">Laden...</div></div><div id="cs-shout-form-' + username + '" style="display:none;margin-top:12px;"><div style="display:flex;gap:8px;align-items:stretch;"><input type="text" id="cs-shout-input-' + username + '" maxlength="60" placeholder="Type iets leuks..." style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;"><button id="cs-shout-submit-' + username + '" style="background:#1DB954;border:none;border-radius:10px;padding:10px 16px;color:#fff;font-weight:800;cursor:pointer;font-size:13px;font-family:inherit;">Post</button></div><div style="font-size:10px;color:#666;margin-top:4px;">Max 60 karakters</div></div>';
+    wall.appendChild(shoutSection);
+
+    var bioItem = prof.querySelector(".item-bio, .UserBio");
+    if (bioItem) {
+      bioItem.parentNode.insertBefore(wall, bioItem.nextSibling);
+    } else {
+      var fallback = prof.querySelector(".UserCard-info, .UserPage-content, .UserCard-profile");
+      if (fallback) fallback.appendChild(wall); else prof.appendChild(wall);
+    }
+
+    loadData(username, myRating, myEmojis, emojis, visitorId);
+
+    var stars = wall.querySelectorAll(".cs-star");
+    stars.forEach(function(star) {
+      star.addEventListener("click", function() {
+        var val = parseInt(this.dataset.val);
+        sheetPost({action:"rate", artist:username, visitor_id:visitorId, rating:val}).then(function(){
+          localStorage.setItem("cs-my-rating-" + username, val);
+          myRating = val;
+          stars.forEach(function(s, idx) {
+            s.style.color = idx < val ? "#FFD700" : "#444";
+            s.style.textShadow = idx < val ? "0 0 8px rgba(255,215,0,.4)" : "none";
+          });
+          var lbl = document.getElementById("cs-rating-label-" + username);
+          if (lbl) lbl.textContent = "Je hebt dit profiel beoordeeld met " + val + "★";
+          return sheetGet("getRatings", username);
+        }).then(function(data){
+          var avgEl = document.getElementById("cs-avg-" + username);
+          var countEl = document.getElementById("cs-count-" + username);
+          if (avgEl) avgEl.textContent = data.avg;
+          if (countEl) countEl.textContent = data.count + " beoordelingen";
+        });
+      });
+      star.addEventListener("mouseenter", function() {
+        var val = parseInt(this.dataset.val);
+        stars.forEach(function(s, idx) { s.style.color = idx < val ? "#FFD700" : "#444"; });
+      });
+      star.addEventListener("mouseleave", function() {
+        stars.forEach(function(s, idx) { s.style.color = idx < myRating ? "#FFD700" : "#444"; });
       });
     });
-    shoutInput.addEventListener("keypress", function(e) { if (e.key === "Enter") shoutSubmit.click(); });
-  }
+
+    var emojiBtns = wall.querySelectorAll(".cs-emoji-btn");
+    emojiBtns.forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        var em = this.dataset.emoji;
+        var emData = emojis.find(function(e) { return e.e === em; });
+        if (!emData) return;
+        var idx = myEmojis.indexOf(em);
+        var countSpan = document.getElementById("cs-ec-" + username + "-" + em);
+        var count = parseInt(countSpan.textContent) || 0;
+        if (idx > -1) {
+          myEmojis.splice(idx, 1);
+          this.style.background = "rgba(255,255,255,.04)";
+          this.style.borderColor = "rgba(255,255,255,.08)";
+          this.style.color = "#ddd";
+          count = Math.max(0, count - 1);
+          sheetPost({action:"unreact", artist:username, visitor_id:visitorId, emoji:em});
+        } else {
+          myEmojis.push(em);
+          this.style.background = emData.c + "25";
+          this.style.borderColor = emData.c + "60";
+          this.style.color = emData.c;
+          count++;
+          this.style.transform = "scale(1.15)";
+          setTimeout(function() { btn.style.transform = "scale(1)"; }, 200);
+          sheetPost({action:"react", artist:username, visitor_id:visitorId, emoji:em});
+        }
+        localStorage.setItem("cs-my-emojis-" + username, JSON.stringify(myEmojis));
+        if (countSpan) countSpan.textContent = count;
+      });
+    });
+
+    var shoutSubmit = document.getElementById("cs-shout-submit-" + username);
+    var shoutInput = document.getElementById("cs-shout-input-" + username);
+    var shoutGrid = document.getElementById("cs-shout-grid-" + username);
+    var shoutForm = document.getElementById("cs-shout-form-" + username);
+    var shoutBtn = document.getElementById("cs-shout-btn-" + username);
+    
+    if (shoutBtn && shoutForm) {
+      shoutBtn.onclick = function() {
+        shoutForm.style.display = shoutForm.style.display === "none" ? "block" : "none";
+      };
+    }
+    if (shoutSubmit && shoutInput && shoutGrid) {
+      shoutSubmit.onclick = function() {
+        var text = shoutInput.value.trim();
+        if (!text) return;
+        sheetPost({action:"shoutout", artist:username, visitor_id:visitorId, text:text}).then(function(){
+          var div = document.createElement("div");
+          div.style.cssText = "background:#1DB95412;border:1px solid #1DB95425;border-radius:10px;padding:10px;font-size:12px;color:#ddd;";
+          div.innerHTML = '<div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">' + text + '</div><div style="font-size:10px;color:#1DB954;display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>Jij • zojuist</div>';
+          if (shoutGrid.children.length === 1 && shoutGrid.children[0].textContent.indexOf("Laden") !== -1) shoutGrid.innerHTML = "";
+          shoutGrid.appendChild(div);
+          shoutGrid.scrollTop = shoutGrid.scrollHeight;
+          shoutInput.value = "";
+          if (shoutForm) shoutForm.style.display = "none";
+        });
+      };
+      shoutInput.onkeypress = function(e) { if (e.key === "Enter") shoutSubmit.click(); };
+    }
+  });
 }
 
 function loadData(username, myRating, myEmojis, emojis, visitorId) {
   sheetGet("getRatings", username).then(function(ratingData) {
+    if (!ratingData) return;
     var avgEl = document.getElementById("cs-avg-" + username);
     var countEl = document.getElementById("cs-count-" + username);
     if (avgEl) avgEl.textContent = ratingData.avg || "—";
     if (countEl) countEl.textContent = (ratingData.count || 0) + " beoordelingen";
     return sheetGet("getReactions", username);
   }).then(function(reactionData) {
+    if (!reactionData) return;
     emojis.forEach(function(em) {
       var el = document.getElementById("cs-ec-" + username + "-" + em.e);
       if (el) el.textContent = reactionData[em.e] || 0;
@@ -344,7 +364,12 @@ function init() {
   addProfileEndorsements();
 }
 
-new MutationObserver(init).observe(document.body, {subtree: true, childList: true});
+// CRASH-BEVEILIGING: Debounce de scanner met 200ms ademruimte!
+var initTimeout = null;
+new MutationObserver(function() {
+  clearTimeout(initTimeout);
+  initTimeout = setTimeout(init, 200);
+}).observe(document.body, {subtree: true, childList: true});
 
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);
@@ -352,4 +377,3 @@ if (document.readyState === "loading") {
   init();
 }
 })();
-</script>
