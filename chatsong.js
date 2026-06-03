@@ -4,12 +4,13 @@ var em = [{e:"🔥",n:"Fire",c:"#ff5500"},{e:"❤️",n:"Love",c:"#ff4444"},{e:"
 
 function jsonp(url){
   return new Promise(function(resolve){
-    var cb = "cs" + Date.now();
+    var cb = "cs" + Date.now() + Math.random().toString(36).substr(2,4);
     window[cb] = function(d){ delete window[cb]; resolve(d); };
     var s = document.createElement("script");
     s.src = url + "&callback=" + cb;
+    s.onerror = function(){ delete window[cb]; resolve({}); };
     document.head.appendChild(s);
-    setTimeout(function(){ delete window[cb]; }, 8000);
+    setTimeout(function(){ delete window[cb]; }, 10000);
   });
 }
 
@@ -32,7 +33,6 @@ function init(){
   w.innerHTML = '<div style="font-weight:800;font-size:15px;color:#fff;margin-bottom:12px;">🏆 Artist Endorsements</div><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;"><div style="text-align:center;min-width:50px;"><div style="font-size:28px;font-weight:900;color:#FFD700;" id="ca-'+user+'">—</div><div style="font-size:10px;color:#888;" id="cn-'+user+'">loading</div></div><div style="flex:1;display:flex;gap:2px;font-size:22px;" id="st-'+user+'"></div></div><div style="font-size:11px;color:#aaa;margin-bottom:12px;">Community Badges:</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;" id="eb-'+user+'"></div><div style="font-size:11px;color:#aaa;margin-bottom:8px;">Fan Shoutouts:</div><div id="sg-'+user+'" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;max-height:180px;overflow-y:auto;"></div><div style="display:flex;gap:6px;margin-top:10px;"><input id="si-'+user+'" maxlength="60" placeholder="Drop a shout..." style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;color:#fff;font-size:12px;"><button id="sb-'+user+'" style="background:#1DB954;border:none;border-radius:8px;padding:8px 12px;color:#fff;font-weight:700;font-size:12px;cursor:pointer;">Post</button></div>';
   bio.parentNode.insertBefore(w, bio.nextSibling);
 
-  // Stars
   var st = document.getElementById("st-"+user);
   for(var i=1;i<=5;i++){
     var s = document.createElement("span");
@@ -47,7 +47,6 @@ function init(){
     st.appendChild(s);
   }
 
-  // Emojis
   var eb = document.getElementById("eb-"+user);
   em.forEach(function(m){
     var b = document.createElement("button");
@@ -63,7 +62,6 @@ function init(){
     eb.appendChild(b);
   });
 
-  // Shoutouts
   var sg = document.getElementById("sg-"+user);
   document.getElementById("sb-"+user).onclick = function(){
     var inp = document.getElementById("si-"+user);
@@ -77,10 +75,9 @@ function init(){
     inp.value = "";
   };
 
-  // Load data via JSONP (NO CORS!)
   jsonp(SHEETS_URL+"?action=getRatings&artist="+encodeURIComponent(user)).then(function(d){
-    document.getElementById("ca-"+user).textContent = d.avg;
-    document.getElementById("cn-"+user).textContent = d.count+" ratings";
+    document.getElementById("ca-"+user).textContent = d.avg || "0.0";
+    document.getElementById("cn-"+user).textContent = (d.count || 0)+" ratings";
   });
   jsonp(SHEETS_URL+"?action=getReactions&artist="+encodeURIComponent(user)).then(function(d){
     em.forEach(function(m){
@@ -89,7 +86,7 @@ function init(){
     });
   });
   jsonp(SHEETS_URL+"?action=getShoutouts&artist="+encodeURIComponent(user)).then(function(d){
-    if(!d.length) sg.innerHTML = '<div style="color:#666;font-size:11px;text-align:center;padding:10px;">No shoutouts yet. Be the first!</div>';
+    if(!d || !d.length) sg.innerHTML = '<div style="color:#666;font-size:11px;text-align:center;padding:10px;">No shoutouts yet. Be the first!</div>';
     else sg.innerHTML = d.map(function(s){return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:8px;font-size:11px;color:#ddd;"><div style="font-weight:700;color:#fff;margin-bottom:3px;">'+s.text+'</div><div style="font-size:9px;color:#888;">'+s.visitor+' • '+s.date+'</div></div>';}).join("");
   });
 }
