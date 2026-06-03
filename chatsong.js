@@ -5,12 +5,12 @@ var em = [{e:"🔥",n:"Fire",c:"#ff5500"},{e:"❤️",n:"Love",c:"#ff4444"},{e:"
 function jsonp(url){
   return new Promise(function(resolve){
     var cb = "cs" + Date.now() + Math.random().toString(36).substr(2,4);
-    window[cb] = function(d){ delete window[cb]; resolve(d); };
+    window[cb] = function(d){ delete window[cb]; resolve(d || []); };
     var s = document.createElement("script");
     s.src = url + "&callback=" + cb;
-    s.onerror = function(){ delete window[cb]; resolve({}); };
+    s.onerror = function(){ delete window[cb]; resolve([]); };
     document.head.appendChild(s);
-    setTimeout(function(){ delete window[cb]; }, 10000);
+    setTimeout(function(){ delete window[cb]; resolve([]); }, 10000);
   });
 }
 
@@ -27,6 +27,7 @@ function init(){
   localStorage.setItem("cs-v", vid);
   var myR = parseInt(localStorage.getItem("cs-r-"+user)) || 0;
   var myE = JSON.parse(localStorage.getItem("cs-e-"+user) || "[]");
+  var localShouts = JSON.parse(localStorage.getItem("cs-s-"+user) || "[]");
 
   var w = document.createElement("div");
   w.style = "margin-top:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;";
@@ -63,35 +64,44 @@ function init(){
   });
 
   var sg = document.getElementById("sg-"+user);
+  
+  function renderShouts(shouts){
+    if(!shouts || !shouts.length) sg.innerHTML = '<div style="color:#666;font-size:11px;text-align:center;padding:10px;">No shoutouts yet. Be the first!</div>';
+    else sg.innerHTML = shouts.map(function(s){return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:8px;font-size:11px;color:#ddd;"><div style="font-weight:700;color:#fff;margin-bottom:3px;">'+s.text+'</div><div style="font-size:9px;color:#888;">'+(s.visitor||"Fan")+' • '+(s.date||"recent")+'</div></div>';}).join("");
+  }
+  
+  renderShouts(localShouts);
+  
   document.getElementById("sb-"+user).onclick = function(){
     var inp = document.getElementById("si-"+user);
     var txt = inp.value.trim(); if(!txt) return;
     jsonp(SHEETS_URL+"?action=shoutout&artist="+encodeURIComponent(user)+"&vid="+vid+"&text="+encodeURIComponent(txt));
-    if(sg.children.length && sg.children[0].textContent.indexOf("No shoutouts")>-1) sg.innerHTML="";
-    var x = document.createElement("div");
-    x.style = "background:rgba(29,185,84,.08);border:1px solid rgba(29,185,84,.15);border-radius:8px;padding:8px;font-size:11px;color:#ddd;";
-    x.textContent = txt;
-    sg.appendChild(x);
+    localShouts.push({text:txt, visitor:"You", date:"Just now"});
+    localStorage.setItem("cs-s-"+user, JSON.stringify(localShouts));
+    renderShouts(localShouts);
     inp.value = "";
   };
 
   jsonp(SHEETS_URL+"?action=getRatings&artist="+encodeURIComponent(user)).then(function(d){
-    document.getElementById("ca-"+user).textContent = d.avg || "0.0";
-    document.getElementById("cn-"+user).textContent = (d.count || 0)+" ratings";
+    document.getElementById("ca-"+user).textContent = (d && d.avg) ? d.avg : "0.0";
+    document.getElementById("cn-"+user).textContent = (d && d.count) ? d.count+" ratings" : "0 ratings";
   });
   jsonp(SHEETS_URL+"?action=getReactions&artist="+encodeURIComponent(user)).then(function(d){
     em.forEach(function(m){
       var el = document.getElementById("ec-"+user+"-"+m.e);
-      if(el) el.textContent = d[m.e] || 0;
+      if(el && d) el.textContent = d[m.e] || 0;
     });
   });
   jsonp(SHEETS_URL+"?action=getShoutouts&artist="+encodeURIComponent(user)).then(function(d){
-    if(!d || !d.length) sg.innerHTML = '<div style="color:#666;font-size:11px;text-align:center;padding:10px;">No shoutouts yet. Be the first!</div>';
-    else sg.innerHTML = d.map(function(s){return '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:8px;font-size:11px;color:#ddd;"><div style="font-weight:700;color:#fff;margin-bottom:3px;">'+s.text+'</div><div style="font-size:9px;color:#888;">'+s.visitor+' • '+s.date+'</div></div>';}).join("");
+    if(d && d.length) {
+      var merged = d.concat(localShouts.filter(function(ls){ return !d.some(function(ds){ return ds.text === ls.text; }); }));
+      localStorage.setItem("cs-s-"+user, JSON.stringify(merged));
+      renderShouts(merged);
+    }
   });
 }
 
 setTimeout(init,1500);
 setTimeout(init,4000);
-console.log("[ChatSong] JSONP loaded - no CORS");
+console.log("[ChatSong] v5 loaded - shoutouts fixed");
 })();
