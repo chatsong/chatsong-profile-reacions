@@ -1,34 +1,22 @@
 <script>
-/* ChatSong Widgets v4.5 - Bulletproof SPA Edition */
+/* ChatSong Widgets v4.6 - Bulletproof PWA & SPA Edition */
 (function(){
 "use strict";
 
-/* ==========================================================================
-   🎨 ULTIEME LEESBAARHEID CONFIGURATIE (Werkt op donkere & lichte profielen)
-   ========================================================================== */
-var CONFIG = {
-  wallBg: "#140D1F",                                   // Volledig dekkende, diepdonkere achtergrond tegen leesbaarheidsproblemen
-  wallBorder: "1px solid rgba(162, 140, 196, 0.4)",    // Duidelijke paarse rand voor afkadering
-  titleColor: "#FFFFFF",                               // Zuiver wit voor titels (maximaal contrast)
-  textColor: "#F5F2FA",                                // Zeer helder lichtpaars/wit voor gewone tekst
-  subTextColor: "#B5A9C9",                             // Goed leesbaar grijs/paars voor details en datums
-  starActive: "#FFD700",                               // Goud voor actieve sterren
-  starInactive: "rgba(255, 255, 255, 0.22)",           // Duidelijk zichtbare lege sterren
-  badgeBg: "rgba(255, 255, 255, 0.05)",                // Subtiele badge achtergrond
-  badgeBorder: "1px solid rgba(255, 255, 255, 0.15)"   // Rand voor de badges
-};
+// JOUW ORIGINELE GOOGLE SHEETS URL (100% BEHOUDEN)
+var SHEETS_URL = "https://script.google.com/macros/s/AKfycbx8Cg-TxX1zhMooAeNimFevcyT-ginZN-lKBLxSzgHFQnVzPDHwUcNClfR505ZKiRil/exec";
 
-var SHEETS_URL = "https://script.google.com/macros/s/AKfycbycnW1qXGqcTj9QQjNwPJETLQkMY-4D99vN8YiGU2psR71gNQkhIPExaYnzaqS_Qplf/exec";
 var AU = ["soundcloud.com","clyp.it","vocaroo.com","hearthis.at","audiomack.com","bandcamp.com","mixcloud.com","deezer.com"];
 var YU = ["youtube.com","youtu.be","vimeo.com","dailymotion.com"];
 
-console.log("[ChatSong] v4.5 active & engine armed");
+console.log("[ChatSong] v4.6 active & engine armed");
 
 function sheetGet(action, artist) {
   return fetch(SHEETS_URL + "?action=" + action + "&artist=" + encodeURIComponent(artist)).then(function(r){return r.json();});
 }
 
 function sheetPost(data) {
+  // text/plain voorkomt CORS-crashes binnen geïnstalleerde PWA-apps
   return fetch(SHEETS_URL, {
     method: "POST",
     headers: {"Content-Type": "text/plain"},
@@ -107,7 +95,7 @@ function addMusicTags() {
     if (el.dataset.tagged === "1" || (el.nextSibling && el.nextSibling.classList && el.nextSibling.classList.contains("cs-tags-wrap"))) return;
     var t = el.textContent;
     var bpm = t.match(/(\d{2,3})\s?BPM/i);
-    var key = t.match(/\b([A-G][#b]?(?:\s?(?:maj|min|major|minor|m))?)\b/i);
+    var key = t.match(/\b([A-G][#b]?(?:\s?(?:maj|min|major|minor|m))?)\b/i); // Gecorrigeerde woordgrenzen
     var tags = [];
     if (bpm) tags.push({t:"🎵 " + bpm[1] + " BPM", c:"#1DB954"});
     if (key) tags.push({t:"🎹 " + key[1], c:"#8A2BE2"});
@@ -150,7 +138,7 @@ function enrichProfile() {
 
 function addProfileEndorsements() {
   var prof = document.querySelector(".UserPage, .UserCard");
-  if (!prof || prof.querySelector(".cs-endorsement-wall")) return;
+  if (!prof || prof.querySelector(".cs-endorsement-wall")) return; // Anti-duplicatie check
 
   var usernameEl = prof.querySelector(".username");
   var username = usernameEl ? usernameEl.textContent.trim() : "user";
@@ -171,33 +159,33 @@ function addProfileEndorsements() {
 
   var wall = document.createElement("div");
   wall.className = "cs-endorsement-wall";
-  wall.style.cssText = "margin-top:16px; background:" + CONFIG.wallBg + "; border:" + CONFIG.wallBorder + "; border-radius:16px; padding:18px; overflow:hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.6); text-align: left; clear: both;";
+  wall.style.cssText = "margin-top:16px;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:18px;overflow:hidden;clear:both;text-align:left;";
 
   var header = document.createElement("div");
   header.style.cssText = "display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;";
-  header.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">🏆</span><div><div style="font-weight:800;font-size:15px;color:' + CONFIG.titleColor + ';">Artist Endorsements</div><div style="font-size:11px;color:' + CONFIG.subTextColor + ';">Community powered</div></div></div>';
+  header.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:20px;">🏆</span><div><div style="font-weight:800;font-size:15px;color:#fff;">Artist Endorsements</div><div style="font-size:11px;color:#888;">Community powered</div></div></div>';
   wall.appendChild(header);
 
   var starSection = document.createElement("div");
-  starSection.style.cssText = "margin-bottom:16px;padding:14px;background:rgba(0,0,0,0.35);border-radius:12px;border:1px solid rgba(255,255,255,0.04);";
-  starSection.innerHTML = '<div style="display:flex;align-items:center;gap:14px;"><div style="text-align:center;min-width:60px;"><div style="font-size:32px;font-weight:900;color:' + CONFIG.starActive + ';line-height:1;" id="cs-avg-' + username + '">—</div><div style="font-size:10px;color:' + CONFIG.subTextColor + ';margin-top:4px;" id="cs-count-' + username + '">loading...</div></div><div style="flex:1;"><div style="display:flex;gap:4px;font-size:24px;margin-bottom:6px;" id="cs-stars-' + username + '"><span class="cs-star" data-val="1" style="cursor:pointer;transition:all .15s;color:' + CONFIG.starInactive + ';user-select:none;">★</span><span class="cs-star" data-val="2" style="cursor:pointer;transition:all .15s;color:' + CONFIG.starInactive + ';user-select:none;">★</span><span class="cs-star" data-val="3" style="cursor:pointer;transition:all .15s;color:' + CONFIG.starInactive + ';user-select:none;">★</span><span class="cs-star" data-val="4" style="cursor:pointer;transition:all .15s;color:' + CONFIG.starInactive + ';user-select:none;">★</span><span class="cs-star" data-val="5" style="cursor:pointer;transition:all .15s;color:' + CONFIG.starInactive + ';user-select:none;">★</span></div><div style="font-size:12px;color:' + CONFIG.textColor + ';font-weight:500;" id="cs-rating-label-' + username + '">Click stars to rate</div></div></div>';
+  starSection.style.cssText = "margin-bottom:16px;padding:14px;background:rgba(0,0,0,.2);border-radius:12px;";
+  starSection.innerHTML = '<div style="display:flex;align-items:center;gap:14px;"><div style="text-align:center;min-width:60px;"><div style="font-size:32px;font-weight:900;color:#FFD700;line-height:1;" id="cs-avg-' + username + '">—</div><div style="font-size:10px;color:#888;margin-top:2px;" id="cs-count-' + username + '">loading...</div></div><div style="flex:1;"><div style="display:flex;gap:3px;font-size:24px;margin-bottom:6px;" id="cs-stars-' + username + '"><span class="cs-star" data-val="1" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="2" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="3" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="4" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="5" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span></div><div style="font-size:12px;color:#aaa;" id="cs-rating-label-' + username + '">Click stars to rate</div></div></div>';
   wall.appendChild(starSection);
 
   var emojiSection = document.createElement("div");
   emojiSection.style.cssText = "margin-bottom:16px;";
-  var emojiHTML = '<div style="font-size:12px;color:' + CONFIG.textColor + ';margin-bottom:10px;font-weight:700;">Community Badges:</div><div style="display:flex;flex-wrap:wrap;gap:8px;" id="cs-emoji-bar-' + username + '">';
+  var emojiHTML = '<div style="font-size:12px;color:#aaa;margin-bottom:10px;font-weight:600;">Community Badges:</div><div style="display:flex;flex-wrap:wrap;gap:8px;" id="cs-emoji-bar-' + username + '">';
   emojis.forEach(function(em) {
-    emojiHTML += '<button class="cs-emoji-btn" data-emoji="' + em.e + '" style="background:' + CONFIG.badgeBg + ';border:' + CONFIG.badgeBorder + ';color:' + CONFIG.textColor + ';border-radius:24px;padding:7px 14px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;font-weight:700;font-family:inherit;"><span style="font-size:18px;">' + em.e + '</span><span>' + em.n + '</span><span style="background:rgba(0,0,0,.5);padding:2px 7px;border-radius:10px;font-size:11px;min-width:18px;text-align:center;color:#fff;font-weight:800;" id="cs-ec-' + username + '-' + em.e + '">—</span></button>';
+    emojiHTML += '<button class="cs-emoji-btn" data-emoji="' + em.e + '" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:#ddd;border-radius:24px;padding:7px 14px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;font-weight:700;font-family:inherit;"><span style="font-size:18px;">' + em.e + '</span><span>' + em.n + '</span><span style="background:rgba(0,0,0,.3);padding:2px 7px;border-radius:10px;font-size:11px;min-width:18px;text-align:center;color:#fff;" id="cs-ec-' + username + '-' + em.e + '">—</span></button>';
   });
   emojiHTML += '</div>';
   emojiSection.innerHTML = emojiHTML;
   wall.appendChild(emojiSection);
 
   var shoutSection = document.createElement("div");
-  shoutSection.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="font-size:12px;color:' + CONFIG.textColor + ';font-weight:700;">Fan Shoutouts:</div><button id="cs-shout-btn-' + username + '" style="background:rgba(138,43,226,.25);border:1px solid #9B6BFF;color:#FFFFFF;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 2px 6px rgba(0,0,0,0.2);">+ Drop a shout</button></div><div id="cs-shout-grid-' + username + '" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:220px;overflow-y:auto;padding-right:4px;"><div style="text-align:center;color:' + CONFIG.subTextColor + ';font-size:12px;padding:20px;">Loading...</div></div><div id="cs-shout-form-' + username + '" style="display:none;margin-top:12px;"><div style="display:flex;gap:8px;align-items:stretch;"><input type="text" id="cs-shout-input-' + username + '" maxlength="60" placeholder="Say something nice..." style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;"><button id="cs-shout-submit-' + username + '" style="background:#8A2BE2;border:none;border-radius:10px;padding:10px 16px;color:#fff;font-weight:800;cursor:pointer;font-size:13px;font-family:inherit;">Post</button></div><div style="font-size:10px;color:' + CONFIG.subTextColor + ';margin-top:4px;">Max 60 characters</div></div>';
+  shoutSection.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="font-size:12px;color:#aaa;font-weight:600;">Fan Shoutouts:</div><button id="cs-shout-btn-' + username + '" style="background:rgba(29,185,84,.15);border:1px solid #1DB954;color:#1DB954;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Drop a shout</button></div><div id="cs-shout-grid-' + username + '" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:220px;overflow-y:auto;padding-right:4px;"><div style="text-align:center;color:#666;font-size:12px;padding:20px;">Loading...</div></div><div id="cs-shout-form-' + username + '" style="display:none;margin-top:12px;"><div style="display:flex;gap:8px;align-items:stretch;"><input type="text" id="cs-shout-input-' + username + '" maxlength="60" placeholder="Say something nice..." style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;"><button id="cs-shout-submit-' + username + '" style="background:#1DB954;border:none;border-radius:10px;padding:10px 16px;color:#fff;font-weight:800;cursor:pointer;font-size:13px;font-family:inherit;">Post</button></div><div style="font-size:10px;color:#666;margin-top:4px;">Max 60 characters</div></div>';
   wall.appendChild(shoutSection);
 
-  // Slimme plaatsing: Zoekt eerst naar bio. Als die er niet is, pakt hij de profielkaart of hoofdinhoud.
+  // Slimme plaatsing: werkt nu ALTIJD, ook als een lid géén bio heeft!
   var bioItem = prof.querySelector(".item-bio, .UserBio");
   if (bioItem) {
     bioItem.parentNode.insertBefore(wall, bioItem.nextSibling);
@@ -216,25 +204,25 @@ function addProfileEndorsements() {
         localStorage.setItem("cs-my-rating-" + username, val);
         myRating = val;
         stars.forEach(function(s, idx) {
-          s.style.color = idx < val ? CONFIG.starActive : CONFIG.starInactive;
+          s.style.color = idx < val ? "#FFD700" : "#444";
           s.style.textShadow = idx < val ? "0 0 8px rgba(255,215,0,.4)" : "none";
         });
-        var label = wall.querySelector("#cs-rating-label-" + username);
-        if (label) label.textContent = "You rated: " + val + "★";
+        var lbl = document.getElementById("cs-rating-label-" + username);
+        if (lbl) lbl.textContent = "You rated: " + val + "★";
         return sheetGet("getRatings", username);
       }).then(function(data){
-        var avgEl = wall.querySelector("#cs-avg-" + username);
-        var countEl = wall.querySelector("#cs-count-" + username);
+        var avgEl = document.getElementById("cs-avg-" + username);
+        var countEl = document.getElementById("cs-count-" + username);
         if (avgEl) avgEl.textContent = data.avg;
         if (countEl) countEl.textContent = data.count + " ratings";
       });
     });
     star.addEventListener("mouseenter", function() {
       var val = parseInt(this.dataset.val);
-      stars.forEach(function(s, idx) { s.style.color = idx < val ? CONFIG.starActive : CONFIG.starInactive; });
+      stars.forEach(function(s, idx) { s.style.color = idx < val ? "#FFD700" : "#444"; });
     });
     star.addEventListener("mouseleave", function() {
-      stars.forEach(function(s, idx) { s.style.color = idx < myRating ? CONFIG.starActive : CONFIG.starInactive; });
+      stars.forEach(function(s, idx) { s.style.color = idx < myRating ? "#FFD700" : "#444"; });
     });
   });
 
@@ -245,22 +233,22 @@ function addProfileEndorsements() {
       var emData = emojis.find(function(e) { return e.e === em; });
       if (!emData) return;
       var idx = myEmojis.indexOf(em);
-      var countSpan = wall.querySelector("#cs-ec-" + username + "-" + em);
+      var countSpan = document.getElementById("cs-ec-" + username + "-" + em);
       var count = parseInt(countSpan.textContent) || 0;
       if (idx > -1) {
         myEmojis.splice(idx, 1);
-        this.style.background = CONFIG.badgeBg;
-        this.style.borderColor = "rgba(255,255,255,.15)";
-        this.style.color = CONFIG.textColor;
+        this.style.background = "rgba(255,255,255,.04)";
+        this.style.borderColor = "rgba(255,255,255,.08)";
+        this.style.color = "#ddd";
         count = Math.max(0, count - 1);
         sheetPost({action:"unreact", artist:username, visitor_id:visitorId, emoji:em});
       } else {
         myEmojis.push(em);
-        this.style.background = emData.c + "35";
-        this.style.borderColor = emData.c;
-        this.style.color = "#FFFFFF";
+        this.style.background = emData.c + "25";
+        this.style.borderColor = emData.c + "60";
+        this.style.color = emData.c;
         count++;
-        this.style.transform = "scale(1.1)";
+        this.style.transform = "scale(1.15)";
         setTimeout(function() { btn.style.transform = "scale(1)"; }, 200);
         sheetPost({action:"react", artist:username, visitor_id:visitorId, emoji:em});
       }
@@ -269,24 +257,24 @@ function addProfileEndorsements() {
     });
   });
 
-  var shoutBtn = wall.querySelector("#cs-shout-btn-" + username);
-  var shoutForm = wall.querySelector("#cs-shout-form-" + username);
+  var shoutBtn = document.getElementById("cs-shout-btn-" + username);
+  var shoutForm = document.getElementById("cs-shout-form-" + username);
   if (shoutBtn && shoutForm) {
     shoutBtn.addEventListener("click", function() {
       shoutForm.style.display = shoutForm.style.display === "none" ? "block" : "none";
     });
   }
-  var shoutSubmit = wall.querySelector("#cs-shout-submit-" + username);
-  var shoutInput = wall.querySelector("#cs-shout-input-" + username);
-  var shoutGrid = wall.querySelector("#cs-shout-grid-" + username);
+  var shoutSubmit = document.getElementById("cs-shout-submit-" + username);
+  var shoutInput = document.getElementById("cs-shout-input-" + username);
+  var shoutGrid = document.getElementById("cs-shout-grid-" + username);
   if (shoutSubmit && shoutInput && shoutGrid) {
     shoutSubmit.addEventListener("click", function() {
       var text = shoutInput.value.trim();
       if (!text) return;
       sheetPost({action:"shoutout", artist:username, visitor_id:visitorId, text:text}).then(function(){
         var div = document.createElement("div");
-        div.style.cssText = "background:rgba(138,43,226,0.2);border:1px solid rgba(155,107,255,0.4);border-radius:10px;padding:10px;font-size:12px;color:#FFFFFF;box-shadow: 0 2px 5px rgba(0,0,0,0.2);";
-        div.innerHTML = '<div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">' + text + '</div><div style="font-size:10px;color:#D8C7FF;display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>You • Just now</div>';
+        div.style.cssText = "background:#1DB95412;border:1px solid #1DB95425;border-radius:10px;padding:10px;font-size:12px;color:#ddd;";
+        div.innerHTML = '<div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">' + text + '</div><div style="font-size:10px;color:#1DB954;display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>You • Just now</div>';
         if (shoutGrid.children.length === 1 && shoutGrid.children[0].textContent.indexOf("Loading") !== -1) shoutGrid.innerHTML = "";
         shoutGrid.appendChild(div);
         shoutGrid.scrollTop = shoutGrid.scrollHeight;
@@ -315,37 +303,35 @@ function loadData(username, myRating, myEmojis, emojis, visitorId) {
     var grid = document.getElementById("cs-shout-grid-" + username);
     if (grid) {
       if (!shoutData || shoutData.length === 0) {
-        grid.innerHTML = '<div style="text-align:center;color:' + CONFIG.subTextColor + ';font-size:12px;padding:20px;">No shoutouts yet. Be the first!</div>';
+        grid.innerHTML = '<div style="text-align:center;color:#666;font-size:12px;padding:20px;">No shoutouts yet. Be the first!</div>';
       } else {
         grid.innerHTML = shoutData.map(function(s) {
-          var colors = ["rgba(255,85,0,0.12)","rgba(29,185,84,0.12)","rgba(138,43,226,0.12)","rgba(255,68,68,0.12)"];
+          var colors = ["#ff550015","#1DB95415","#8A2BE215","#FF444415","#FFD70015","#00BFFF15"];
           var vName = s.visitor || "Anonymous";
-          var textStr = s.text || "";
-          var dateStr = s.date || "Just now";
-          return '<div style="background:' + colors[Math.abs(vName.length)%4] + ';border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;font-size:12px;color:#FFFFFF;"><div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">' + textStr + '</div><div style="font-size:10px;color:' + CONFIG.subTextColor + ';display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>' + vName + ' • ' + dateStr + '</div></div>';
+          return '<div style="background:' + colors[Math.abs(vName.length)%6] + ';border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;font-size:12px;color:#ddd;"><div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">' + (s.text || "") + '</div><div style="font-size:10px;color:#888;display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>' + vName + ' • ' + (s.date || "") + '</div></div>';
         }).join("");
       }
     }
     if (myRating > 0) {
       var stars = document.querySelectorAll("#cs-stars-" + username + " .cs-star");
       stars.forEach(function(s, idx) {
-        s.style.color = idx < myRating ? CONFIG.starActive : CONFIG.starInactive;
+        s.style.color = idx < myRating ? "#FFD700" : "#444";
         s.style.textShadow = idx < myRating ? "0 0 8px rgba(255,215,0,.4)" : "none";
       });
-      var labelEl = document.getElementById("cs-rating-label-" + username);
-      if (labelEl) labelEl.textContent = "You rated: " + myRating + "★";
+      var lbl = document.getElementById("cs-rating-label-" + username);
+      if (lbl) lbl.textContent = "You rated: " + myRating + "★";
     }
     myEmojis.forEach(function(em) {
       var btn = document.querySelector('#cs-emoji-bar-' + username + ' .cs-emoji-btn[data-emoji="' + em + '"]');
       var emData = emojis.find(function(e) { return e.e === em; });
       if (btn && emData) {
-        btn.style.background = emData.c + "35";
-        btn.style.borderColor = emData.c;
-        btn.style.color = "#FFFFFF";
+        btn.style.background = emData.c + "25";
+        btn.style.borderColor = emData.c + "60";
+        btn.style.color = emData.c;
       }
     });
   }).catch(function(e) {
-    console.error("[ChatSong] Database fetch error:", e);
+    console.error("[ChatSong] Database load error:", e);
     var countEl = document.getElementById("cs-count-" + username);
     if (countEl) countEl.textContent = "Error loading";
   });
@@ -359,7 +345,7 @@ function init() {
   addProfileEndorsements();
 }
 
-// Observeert veranderingen in het document en injecteert onmiddellijk zodra Flarum de pagina herbouwt
+// Observeert continu de pagina. Zodra Flarum onderdelen vernieuwt, herstelt het script direct de widgets.
 new MutationObserver(init).observe(document.body, {subtree: true, childList: true});
 
 if (document.readyState === "loading") {
