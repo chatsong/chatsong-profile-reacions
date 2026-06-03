@@ -1,22 +1,21 @@
 <script>
-/* ChatSong Widgets v4.6 - Bulletproof PWA & SPA Edition */
+/* ChatSong Widgets v4.7 - Volledig Hersteld & Geoptimaliseerd */
 (function(){
 "use strict";
 
-// JOUW ORIGINELE GOOGLE SHEETS URL (100% BEHOUDEN)
+// JOUW ORIGINELE GOOGLE SHEETS URL
 var SHEETS_URL = "https://script.google.com/macros/s/AKfycbx8Cg-TxX1zhMooAeNimFevcyT-ginZN-lKBLxSzgHFQnVzPDHwUcNClfR505ZKiRil/exec";
 
 var AU = ["soundcloud.com","clyp.it","vocaroo.com","hearthis.at","audiomack.com","bandcamp.com","mixcloud.com","deezer.com"];
 var YU = ["youtube.com","youtu.be","vimeo.com","dailymotion.com"];
 
-console.log("[ChatSong] v4.6 active & engine armed");
+console.log("[ChatSong] v4.7 engine armed and connected.");
 
 function sheetGet(action, artist) {
   return fetch(SHEETS_URL + "?action=" + action + "&artist=" + encodeURIComponent(artist)).then(function(r){return r.json();});
 }
 
 function sheetPost(data) {
-  // text/plain voorkomt CORS-crashes binnen geïnstalleerde PWA-apps
   return fetch(SHEETS_URL, {
     method: "POST",
     headers: {"Content-Type": "text/plain"},
@@ -95,7 +94,7 @@ function addMusicTags() {
     if (el.dataset.tagged === "1" || (el.nextSibling && el.nextSibling.classList && el.nextSibling.classList.contains("cs-tags-wrap"))) return;
     var t = el.textContent;
     var bpm = t.match(/(\d{2,3})\s?BPM/i);
-    var key = t.match(/\b([A-G][#b]?(?:\s?(?:maj|min|major|minor|m))?)\b/i); // Gecorrigeerde woordgrenzen
+    var key = t.match(/\b([A-G][#b]?(?:\s?(?:maj|min|major|minor|m))?)\b/i);
     var tags = [];
     if (bpm) tags.push({t:"🎵 " + bpm[1] + " BPM", c:"#1DB954"});
     if (key) tags.push({t:"🎹 " + key[1], c:"#8A2BE2"});
@@ -138,7 +137,7 @@ function enrichProfile() {
 
 function addProfileEndorsements() {
   var prof = document.querySelector(".UserPage, .UserCard");
-  if (!prof || prof.querySelector(".cs-endorsement-wall")) return; // Anti-duplicatie check
+  if (!prof || prof.querySelector(".cs-endorsement-wall")) return;
 
   var usernameEl = prof.querySelector(".username");
   var username = usernameEl ? usernameEl.textContent.trim() : "user";
@@ -168,7 +167,7 @@ function addProfileEndorsements() {
 
   var starSection = document.createElement("div");
   starSection.style.cssText = "margin-bottom:16px;padding:14px;background:rgba(0,0,0,.2);border-radius:12px;";
-  starSection.innerHTML = '<div style="display:flex;align-items:center;gap:14px;"><div style="text-align:center;min-width:60px;"><div style="font-size:32px;font-weight:900;color:#FFD700;line-height:1;" id="cs-avg-' + username + '">—</div><div style="font-size:10px;color:#888;margin-top:2px;" id="cs-count-' + username + '">loading...</div></div><div style="flex:1;"><div style="display:flex;gap:3px;font-size:24px;margin-bottom:6px;" id="cs-stars-' + username + '"><span class="cs-star" data-val="1" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="2" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="3" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="4" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="5" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span></div><div style="font-size:12px;color:#aaa;" id="cs-rating-label-' + username + '">Click stars to rate</div></div></div>';
+  starSection.innerHTML = '<div style="display:flex;align-items:center;gap:14px;"><div style="text-align:center;min-width:60px;"><div style="font-size:32px;font-weight:900;color:#FFD700;line-height:1;" id="cs-avg-' + username + '">—</div><div style="font-size:10px;color:#888;margin-top:2px;" id="cs-count-' + username + '">loading...</div></div><div style="flex:1;"><div style="display:flex;gap:3px;font-size:24px;margin-bottom:6px;" id="cs-stars-' + username + '"><span class="cs-star" data-val="1" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="2" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="3" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="4" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span><span class="cs-star" data-val="5" style="cursor:pointer;transition:all .15s;color:#444;user-select:none;">★</span></div><div style="font-size:12px;color:#aaa;" id="cs-rating-label-' + username + '">Klik op de sterren om te stemmen</div></div></div>';
   wall.appendChild(starSection);
 
   var emojiSection = document.createElement("div");
@@ -182,10 +181,9 @@ function addProfileEndorsements() {
   wall.appendChild(emojiSection);
 
   var shoutSection = document.createElement("div");
-  shoutSection.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="font-size:12px;color:#aaa;font-weight:600;">Fan Shoutouts:</div><button id="cs-shout-btn-' + username + '" style="background:rgba(29,185,84,.15);border:1px solid #1DB954;color:#1DB954;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Drop a shout</button></div><div id="cs-shout-grid-' + username + '" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:220px;overflow-y:auto;padding-right:4px;"><div style="text-align:center;color:#666;font-size:12px;padding:20px;">Loading...</div></div><div id="cs-shout-form-' + username + '" style="display:none;margin-top:12px;"><div style="display:flex;gap:8px;align-items:stretch;"><input type="text" id="cs-shout-input-' + username + '" maxlength="60" placeholder="Say something nice..." style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;"><button id="cs-shout-submit-' + username + '" style="background:#1DB954;border:none;border-radius:10px;padding:10px 16px;color:#fff;font-weight:800;cursor:pointer;font-size:13px;font-family:inherit;">Post</button></div><div style="font-size:10px;color:#666;margin-top:4px;">Max 60 characters</div></div>';
+  shoutSection.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><div style="font-size:12px;color:#aaa;font-weight:600;">Fan Shoutouts:</div><button id="cs-shout-btn-' + username + '" style="background:rgba(29,185,84,.15);border:1px solid #1DB954;color:#1DB954;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">+ Drop a shout</button></div><div id="cs-shout-grid-' + username + '" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;max-height:220px;overflow-y:auto;padding-right:4px;"><div style="text-align:center;color:#666;font-size:12px;padding:20px;">Laden...</div></div><div id="cs-shout-form-' + username + '" style="display:none;margin-top:12px;"><div style="display:flex;gap:8px;align-items:stretch;"><input type="text" id="cs-shout-input-' + username + '" maxlength="60" placeholder="Type iets leuks..." style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;"><button id="cs-shout-submit-' + username + '" style="background:#1DB954;border:none;border-radius:10px;padding:10px 16px;color:#fff;font-weight:800;cursor:pointer;font-size:13px;font-family:inherit;">Post</button></div><div style="font-size:10px;color:#666;margin-top:4px;">Max 60 karakters</div></div>';
   wall.appendChild(shoutSection);
 
-  // Slimme plaatsing: werkt nu ALTIJD, ook als een lid géén bio heeft!
   var bioItem = prof.querySelector(".item-bio, .UserBio");
   if (bioItem) {
     bioItem.parentNode.insertBefore(wall, bioItem.nextSibling);
@@ -208,13 +206,13 @@ function addProfileEndorsements() {
           s.style.textShadow = idx < val ? "0 0 8px rgba(255,215,0,.4)" : "none";
         });
         var lbl = document.getElementById("cs-rating-label-" + username);
-        if (lbl) lbl.textContent = "You rated: " + val + "★";
+        if (lbl) lbl.textContent = "Je hebt dit profiel beoordeeld met " + val + "★";
         return sheetGet("getRatings", username);
       }).then(function(data){
         var avgEl = document.getElementById("cs-avg-" + username);
         var countEl = document.getElementById("cs-count-" + username);
         if (avgEl) avgEl.textContent = data.avg;
-        if (countEl) countEl.textContent = data.count + " ratings";
+        if (countEl) countEl.textContent = data.count + " beoordelingen";
       });
     });
     star.addEventListener("mouseenter", function() {
@@ -257,16 +255,17 @@ function addProfileEndorsements() {
     });
   });
 
-  var shoutBtn = document.getElementById("cs-shout-btn-" + username);
+  var shoutSubmit = document.getElementById("cs-shout-submit-" + username);
+  var shoutInput = document.getElementById("cs-shout-input-" + username);
+  var shoutGrid = document.getElementById("cs-shout-grid-" + username);
   var shoutForm = document.getElementById("cs-shout-form-" + username);
+  var shoutBtn = document.getElementById("cs-shout-btn-" + username);
+  
   if (shoutBtn && shoutForm) {
     shoutBtn.addEventListener("click", function() {
       shoutForm.style.display = shoutForm.style.display === "none" ? "block" : "none";
     });
   }
-  var shoutSubmit = document.getElementById("cs-shout-submit-" + username);
-  var shoutInput = document.getElementById("cs-shout-input-" + username);
-  var shoutGrid = document.getElementById("cs-shout-grid-" + username);
   if (shoutSubmit && shoutInput && shoutGrid) {
     shoutSubmit.addEventListener("click", function() {
       var text = shoutInput.value.trim();
@@ -274,8 +273,8 @@ function addProfileEndorsements() {
       sheetPost({action:"shoutout", artist:username, visitor_id:visitorId, text:text}).then(function(){
         var div = document.createElement("div");
         div.style.cssText = "background:#1DB95412;border:1px solid #1DB95425;border-radius:10px;padding:10px;font-size:12px;color:#ddd;";
-        div.innerHTML = '<div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">' + text + '</div><div style="font-size:10px;color:#1DB954;display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>You • Just now</div>';
-        if (shoutGrid.children.length === 1 && shoutGrid.children[0].textContent.indexOf("Loading") !== -1) shoutGrid.innerHTML = "";
+        div.innerHTML = '<div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">' + text + '</div><div style="font-size:10px;color:#1DB954;display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>Jij • zojuist</div>';
+        if (shoutGrid.children.length === 1 && shoutGrid.children[0].textContent.indexOf("Laden") !== -1) shoutGrid.innerHTML = "";
         shoutGrid.appendChild(div);
         shoutGrid.scrollTop = shoutGrid.scrollHeight;
         shoutInput.value = "";
@@ -291,7 +290,7 @@ function loadData(username, myRating, myEmojis, emojis, visitorId) {
     var avgEl = document.getElementById("cs-avg-" + username);
     var countEl = document.getElementById("cs-count-" + username);
     if (avgEl) avgEl.textContent = ratingData.avg || "—";
-    if (countEl) countEl.textContent = (ratingData.count || 0) + " ratings";
+    if (countEl) countEl.textContent = (ratingData.count || 0) + " beoordelingen";
     return sheetGet("getReactions", username);
   }).then(function(reactionData) {
     emojis.forEach(function(em) {
@@ -303,11 +302,11 @@ function loadData(username, myRating, myEmojis, emojis, visitorId) {
     var grid = document.getElementById("cs-shout-grid-" + username);
     if (grid) {
       if (!shoutData || shoutData.length === 0) {
-        grid.innerHTML = '<div style="text-align:center;color:#666;font-size:12px;padding:20px;">No shoutouts yet. Be the first!</div>';
+        grid.innerHTML = '<div style="text-align:center;color:#666;font-size:12px;padding:20px;">Nog geen shoutouts. Plaats de eerste!</div>';
       } else {
         grid.innerHTML = shoutData.map(function(s) {
           var colors = ["#ff550015","#1DB95415","#8A2BE215","#FF444415","#FFD70015","#00BFFF15"];
-          var vName = s.visitor || "Anonymous";
+          var vName = s.visitor || "Anoniem";
           return '<div style="background:' + colors[Math.abs(vName.length)%6] + ';border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;font-size:12px;color:#ddd;"><div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">' + (s.text || "") + '</div><div style="font-size:10px;color:#888;display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>' + vName + ' • ' + (s.date || "") + '</div></div>';
         }).join("");
       }
@@ -319,7 +318,7 @@ function loadData(username, myRating, myEmojis, emojis, visitorId) {
         s.style.textShadow = idx < myRating ? "0 0 8px rgba(255,215,0,.4)" : "none";
       });
       var lbl = document.getElementById("cs-rating-label-" + username);
-      if (lbl) lbl.textContent = "You rated: " + myRating + "★";
+      if (lbl) lbl.textContent = "Je hebt dit profiel beoordeeld met " + myRating + "★";
     }
     myEmojis.forEach(function(em) {
       var btn = document.querySelector('#cs-emoji-bar-' + username + ' .cs-emoji-btn[data-emoji="' + em + '"]');
@@ -333,7 +332,7 @@ function loadData(username, myRating, myEmojis, emojis, visitorId) {
   }).catch(function(e) {
     console.error("[ChatSong] Database load error:", e);
     var countEl = document.getElementById("cs-count-" + username);
-    if (countEl) countEl.textContent = "Error loading";
+    if (countEl) countEl.textContent = "Fout bij laden";
   });
 }
 
@@ -345,7 +344,6 @@ function init() {
   addProfileEndorsements();
 }
 
-// Observeert continu de pagina. Zodra Flarum onderdelen vernieuwt, herstelt het script direct de widgets.
 new MutationObserver(init).observe(document.body, {subtree: true, childList: true});
 
 if (document.readyState === "loading") {
