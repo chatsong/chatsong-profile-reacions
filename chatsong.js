@@ -1,23 +1,15 @@
-* THE CLONINGS — FreeFlarum Music Widgets v4.0 (Google Sheets Edition)
-   Host op: GitHub Pages → chatsong.github.io/chatsong-widgets/chatsong.js
-   Footer: <script src="https://chatsong.github.io/chatsong-widgets/chatsong.js"></script>
-
-   BACKEND: Google Sheets + Apps Script (gratis, onzichtbaar, geen limiet)
-   - Real-time star ratings, emoji badges, fan shoutouts
-   - Admin ziet alles in een spreadsheet
-   - Geen branding, geen popup, geen "powered by"
+/* THE CLONINGS — FreeFlarum Music Widgets v4.1 (Robust SPA Edition)
+   Host: GitHub Pages
+   Footer: <script src="https://chatsong.github.io/chatsong-profile-reacions/chatsong.js"></script>
 */
 (function(){
 'use strict';
 
-// ═══════════════════════════════════════════════════════════════
-// CONFIG — Google Apps Script Web App URL (jouw backend)
-// ═══════════════════════════════════════════════════════════════
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbx8Cg-TxX1zhMooAeNimFevcyT-ginZN-lKBLxSzgHFQnVzPDHwUcNClfR505ZKiRil/exec';
-// ═══════════════════════════════════════════════════════════════
+const AU = ['soundcloud.com','clyp.it','vocaroo.com','hearthis.at','audiomack.com','bandcamp.com','mixcloud.com','deezer.com'];
+const YU = ['youtube.com','youtu.be','vimeo.com','dailymotion.com'];
 
-const AU=['soundcloud.com','clyp.it','vocaroo.com','hearthis.at','audiomack.com','bandcamp.com','mixcloud.com','deezer.com'];
-const YU=['youtube.com','youtu.be','vimeo.com','dailymotion.com'];
+console.log('[ChatSong] Script loaded, waiting for DOM...');
 
 /* ─── SHEETS HELPERS ─── */
 async function sheetGet(action, artist){
@@ -25,7 +17,6 @@ async function sheetGet(action, artist){
   const res = await fetch(url);
   return res.json();
 }
-
 async function sheetPost(data){
   const res = await fetch(SHEETS_URL, {
     method: 'POST',
@@ -37,150 +28,130 @@ async function sheetPost(data){
 
 /* ─── 1. VOICE RECORDER ─── */
 function addVoiceBtn(){
-  const areas=document.querySelectorAll('.Composer, .PostStream-reply, .reply-form, .Post-actions');
-  areas.forEach(function(ar){
-    if(ar.dataset.voice==='1')return;
-    ar.dataset.voice='1';
-    const btn=document.createElement('button');
-    btn.innerHTML='🎙️';
-    btn.title='Voice note (30sec max)';
-    btn.style.cssText='background:rgba(29,185,84,.15);border:1px solid #1DB954;color:#1DB954;border-radius:20px;padding:4px 10px;font-size:13px;cursor:pointer;margin-left:8px;font-weight:700;';
-    btn.onclick=function(e){e.preventDefault();toggleVoice(btn,ar)};
-    const actions=ar.querySelector('.Composer-actions, .form-controls, .PostStream-actions, ul');
-    if(actions)actions.appendChild(btn);
-    else ar.appendChild(btn);
+  const areas = document.querySelectorAll('.Composer, .PostStream-reply, .reply-form, .Post-actions');
+  areas.forEach(ar => {
+    if(ar.dataset.voice === '1') return;
+    ar.dataset.voice = '1';
+    const btn = document.createElement('button');
+    btn.innerHTML = '🎙️';
+    btn.title = 'Voice note (30sec)';
+    btn.style.cssText = 'background:rgba(29,185,84,.15);border:1px solid #1DB954;color:#1DB954;border-radius:20px;padding:4px 10px;font-size:13px;cursor:pointer;margin-left:8px;font-weight:700;';
+    btn.onclick = e => { e.preventDefault(); toggleVoice(btn, ar); };
+    const actions = ar.querySelector('.Composer-actions, .form-controls, .PostStream-actions, ul');
+    if(actions) actions.appendChild(btn); else ar.appendChild(btn);
   });
 }
 
-let mr=null,ms=null;
-function toggleVoice(btn,ar){
-  if(mr&&mr.state==='recording'){
-    mr.stop();
-    btn.innerHTML='🎙️';
-    btn.style.background='rgba(29,185,84,.15)';
+let mr = null, ms = null;
+function toggleVoice(btn, ar){
+  if(mr && mr.state === 'recording'){
+    mr.stop(); btn.innerHTML = '🎙️'; btn.style.background = 'rgba(29,185,84,.15)';
     return;
   }
-  navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){
-    ms=s;
-    mr=new MediaRecorder(s);
-    const chunks=[];
-    mr.ondataavailable=function(e){if(e.data.size)chunks.push(e.data)};
-    mr.onstop=function(){
-      const blob=new Blob(chunks,{type:'audio/webm'});
-      const url=URL.createObjectURL(blob);
-      const ta=ar.querySelector('textarea, .ComposerBody');
-      if(ta){
-        const link='[Audio: upload naar https://clyp.it of https://vocaroo.com en plak link hier]\n'+url+' (preview alleen voor jou)';
-        ta.value=(ta.value?ta.value+'\n':'')+link;
-      }
-      const dl=document.createElement('a');
-      dl.href=url;
-      dl.download='voice-note.webm';
-      dl.textContent='💾 Download voice note';
-      dl.style.cssText='display:block;margin-top:8px;color:#1DB954;font-size:12px;';
-      const box=ar.querySelector('.Composer-body, .PostStream-reply')||ar;
-      box.appendChild(dl);
-      ms.getTracks().forEach(function(t){t.stop()});
+  navigator.mediaDevices.getUserMedia({audio:true}).then(s => {
+    ms = s; mr = new MediaRecorder(s);
+    const chunks = [];
+    mr.ondataavailable = e => { if(e.data.size) chunks.push(e.data); };
+    mr.onstop = () => {
+      const blob = new Blob(chunks, {type:'audio/webm'});
+      const url = URL.createObjectURL(blob);
+      const ta = ar.querySelector('textarea, .ComposerBody');
+      if(ta) ta.value = (ta.value ? ta.value + '
+' : '') + '[Voice note: ' + url + ']';
+      ms.getTracks().forEach(t => t.stop());
     };
-    mr.start();
-    btn.innerHTML='⏹️ Stop';
-    btn.style.background='#FF4444';
-    setTimeout(function(){if(mr&&mr.state==='recording')mr.stop();},30000);
-  }).catch(function(){alert('Microfoon nodig');});
+    mr.start(); btn.innerHTML = '⏹️'; btn.style.background = '#FF4444';
+    setTimeout(() => { if(mr && mr.state === 'recording') mr.stop(); }, 30000);
+  }).catch(() => alert('Microfoon nodig'));
 }
 
-/* ─── 2. AUDIO EMBED PLAYER ─── */
+/* ─── 2. AUDIO EMBEDS ─── */
 function enrichAudio(){
-  document.querySelectorAll('.Post-body a, .Post-content a, .CommentPost a, .UserBio a').forEach(function(a){
-    if(a.dataset.enriched==='1')return;
-    const h=a.href.toLowerCase();
-    const pl=AU.find(function(d){return h.includes(d)});
-    const vi=YU.find(function(d){return h.includes(d)});
-    if(!pl&&!vi)return;
-    a.dataset.enriched='1';
+  document.querySelectorAll('.Post-body a, .Post-content a, .CommentPost a, .UserBio a').forEach(a => {
+    if(a.dataset.enriched === '1') return;
+    const h = a.href.toLowerCase();
+    const pl = AU.find(d => h.includes(d));
+    const vi = YU.find(d => h.includes(d));
+    if(!pl && !vi) return;
+    a.dataset.enriched = '1';
 
     if(pl){
-      const wrap=document.createElement('div');
-      wrap.style.cssText='background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;margin:8px 0;display:flex;align-items:center;gap:12px;max-width:400px;';
-      wrap.innerHTML='<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:flex;align-items:center;justify-content:center;font-size:16px">🎵</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+a.textContent.substring(0,40)+'</div><div style="font-size:10px;color:#888;text-transform:uppercase">'+pl+'</div></div><button style="background:#1DB954;border:none;border-radius:50%;width:32px;height:32px;color:#fff;cursor:pointer;font-size:14px">▶</button>';
-      const btn=wrap.querySelector('button');
-      let playing=false;
-      btn.onclick=function(){
-        if(!playing){
-          window.open(a.href,'_blank','width=500,height=300');
-          btn.innerHTML='⏹'; playing=true;
-          setTimeout(function(){playing=false;btn.innerHTML='▶';},5000);
-        }
-      };
-      a.parentNode.insertBefore(wrap,a.nextSibling);
-      a.style.display='none';
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;margin:8px 0;display:flex;align-items:center;gap:12px;max-width:400px;';
+      wrap.innerHTML = '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:flex;align-items:center;justify-content:center;font-size:16px">🎵</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + a.textContent.substring(0,40) + '</div><div style="font-size:10px;color:#888;text-transform:uppercase">' + pl + '</div></div><button style="background:#1DB954;border:none;border-radius:50%;width:32px;height:32px;color:#fff;cursor:pointer;font-size:14px">▶</button>';
+      const btn = wrap.querySelector('button');
+      btn.onclick = () => { window.open(a.href, '_blank', 'width=500,height=300'); };
+      a.parentNode.insertBefore(wrap, a.nextSibling);
+      a.style.display = 'none';
     }
-
     if(vi){
-      const wrap=document.createElement('div');
-      wrap.style.cssText='background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;margin:8px 0;display:flex;align-items:center;gap:12px;max-width:400px;';
-      wrap.innerHTML='<div style="width:36px;height:36px;border-radius:50%;background:#FF0000;display:flex;align-items:center;justify-content:center;font-size:16px">▶️</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+a.textContent.substring(0,40)+'</div><div style="font-size:10px;color:#888;text-transform:uppercase">Video</div></div><a href="'+a.href+'" target="_blank" style="background:rgba(255,0,0,.2);border:1px solid #FF0000;color:#FF4444;border-radius:20px;padding:4px 12px;font-size:11px;text-decoration:none;font-weight:700">Bekijk</a>';
-      a.parentNode.insertBefore(wrap,a.nextSibling);
-      a.style.display='none';
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 14px;margin:8px 0;display:flex;align-items:center;gap:12px;max-width:400px;';
+      wrap.innerHTML = '<div style="width:36px;height:36px;border-radius:50%;background:#FF0000;display:flex;align-items:center;justify-content:center;font-size:16px">▶️</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + a.textContent.substring(0,40) + '</div><div style="font-size:10px;color:#888;text-transform:uppercase">Video</div></div><a href="' + a.href + '" target="_blank" style="background:rgba(255,0,0,.2);border:1px solid #FF0000;color:#FF4444;border-radius:20px;padding:4px 12px;font-size:11px;text-decoration:none;font-weight:700">Bekijk</a>';
+      a.parentNode.insertBefore(wrap, a.nextSibling);
+      a.style.display = 'none';
     }
   });
 }
 
-/* ─── 3. AUTO BPM/KEY BADGES ─── */
+/* ─── 3. BPM/KEY BADGES ─── */
 function addMusicTags(){
-  document.querySelectorAll('.DiscussionListItem-title, .DiscussionTitle, .PostStream-item .Post-header h3, .PostUser-name').forEach(function(el){
-    if(el.dataset.tagged==='1')return;
-    el.dataset.tagged='1';
-    const t=el.textContent;
-    const bpm=t.match(/(\d{2,3})\s?BPM/i);
-    const key=t.match(/\b([A-G][#b]?(?:\s?(?:maj|min|major|minor|m))?)\b/i);
-    const tags=[];
-    if(bpm)tags.push({t:'🎵 '+bpm[1]+' BPM',c:'#1DB954'});
-    if(key)tags.push({t:'🎹 '+key[1],c:'#8A2BE2'});
+  document.querySelectorAll('.DiscussionListItem-title, .DiscussionTitle, .PostStream-item .Post-header h3, .PostUser-name').forEach(el => {
+    if(el.dataset.tagged === '1') return;
+    el.dataset.tagged = '1';
+    const t = el.textContent;
+    const bpm = t.match(/(\d{2,3})\s?BPM/i);
+    const key = t.match(/([A-G][#b]?(?:\s?(?:maj|min|major|minor|m))?)/i);
+    const tags = [];
+    if(bpm) tags.push({t:'🎵 ' + bpm[1] + ' BPM', c:'#1DB954'});
+    if(key) tags.push({t:'🎹 ' + key[1], c:'#8A2BE2'});
     if(tags.length){
-      const wrap=document.createElement('div');
-      wrap.style.cssText='display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;';
-      tags.forEach(function(tag){
-        const sp=document.createElement('span');
-        sp.style.cssText='background:'+tag.c+'22;border:1px solid '+tag.c+'44;color:'+tag.c+';border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px';
-        sp.textContent=tag.t;
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;';
+      tags.forEach(tag => {
+        const sp = document.createElement('span');
+        sp.style.cssText = 'background:' + tag.c + '22;border:1px solid ' + tag.c + '44;color:' + tag.c + ';border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px';
+        sp.textContent = tag.t;
         wrap.appendChild(sp);
       });
-      el.parentNode.insertBefore(wrap,el.nextSibling);
+      el.parentNode.insertBefore(wrap, el.nextSibling);
     }
   });
 }
 
 /* ─── 4. PROFILE AUDIO BIO ─── */
 function enrichProfile(){
-  const prof=document.querySelector('.UserCard, .UserPage');
-  if(!prof||prof.dataset.audio==='1')return;
-  prof.dataset.audio='1';
-  const bio=prof.querySelector('.UserBio, .UserCard-bio, .item-bio');
-  if(!bio)return;
-  const links=bio.querySelectorAll('a');
-  let audioLink=null;
-  links.forEach(function(a){
-    const h=a.href.toLowerCase();
-    if(AU.some(function(d){return h.includes(d)}))audioLink=a.href;
+  const prof = document.querySelector('.UserCard, .UserPage');
+  if(!prof || prof.dataset.audio === '1') return;
+  prof.dataset.audio = '1';
+  const bio = prof.querySelector('.UserBio, .UserCard-bio, .item-bio');
+  if(!bio) return;
+  const links = bio.querySelectorAll('a');
+  let audioLink = null;
+  links.forEach(a => {
+    const h = a.href.toLowerCase();
+    if(AU.some(d => h.includes(d))) audioLink = a.href;
   });
-  if(!audioLink)return;
-  const box=document.createElement('div');
-  box.style.cssText='background:linear-gradient(135deg,rgba(29,185,84,.1),rgba(138,43,226,.1));border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;margin:10px 0;';
-  box.innerHTML='<div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:flex;align-items:center;justify-content:center;font-size:20px;animation:csPulse 2s infinite">🎵</div><div style="flex:1"><div style="font-weight:700;font-size:14px">Audio Bio</div><div style="font-size:11px;color:#888">Klik om te beluisteren</div></div><a href="'+audioLink+'" target="_blank" style="background:#1DB954;border:none;border-radius:20px;padding:6px 16px;color:#fff;font-size:12px;font-weight:700;text-decoration:none">▶️ Play</a></div><style>@keyframes csPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}</style>';
+  if(!audioLink) return;
+  const box = document.createElement('div');
+  box.style.cssText = 'background:linear-gradient(135deg,rgba(29,185,84,.1),rgba(138,43,226,.1));border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;margin:10px 0;';
+  box.innerHTML = '<div style="display:flex;align-items:center;gap:12px"><div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:flex;align-items:center;justify-content:center;font-size:20px;animation:csPulse 2s infinite">🎵</div><div style="flex:1"><div style="font-weight:700;font-size:14px">Audio Bio</div><div style="font-size:11px;color:#888">Klik om te beluisteren</div></div><a href="' + audioLink + '" target="_blank" style="background:#1DB954;border:none;border-radius:20px;padding:6px 16px;color:#fff;font-size:12px;font-weight:700;text-decoration:none">▶️ Play</a></div><style>@keyframes csPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}</style>';
   const info = prof.querySelector('.UserCard-info, .UserPage-content');
   if(info && info.firstChild) info.insertBefore(box, info.firstChild);
   else bio.parentNode.insertBefore(box, bio);
 }
 
-/* ─── 5. PROFILE ENDORSEMENT WALL v4.0 — GOOGLE SHEETS POWERED ─── */
+/* ─── 5. PROFILE ENDORSEMENT WALL ─── */
 function addProfileEndorsements(){
   const prof = document.querySelector('.UserPage, .UserCard');
-  if(!prof || prof.dataset.endorsements === '1') return;
-  prof.dataset.endorsements = '1';
+  if(!prof) { console.log('[ChatSong] No .UserPage/.UserCard found yet'); return; }
+  if(prof.dataset.endorsements === '1') { console.log('[ChatSong] Already added to this profile'); return; }
 
   const bioItem = prof.querySelector('.item-bio, .UserBio');
-  if(!bioItem) return;
+  if(!bioItem) { console.log('[ChatSong] No bio element found'); return; }
+
+  prof.dataset.endorsements = '1';
+  console.log('[ChatSong] Building endorsement wall for profile...');
 
   const usernameEl = prof.querySelector('.username');
   const username = usernameEl ? usernameEl.textContent.trim() : 'user';
@@ -280,12 +251,12 @@ function addProfileEndorsements(){
   wall.appendChild(shoutSection);
 
   bioItem.parentNode.insertBefore(wall, bioItem.nextSibling);
+  console.log('[ChatSong] Wall inserted into DOM for ' + username);
 
-  // ─── LOAD REAL DATA FROM GOOGLE SHEETS ───
+  // ─── LOAD DATA ───
   loadData(username, myRating, myEmojis, emojis, visitorId);
 
   // ─── INTERACTIVITY ───
-
   const stars = wall.querySelectorAll('.cs-star');
   stars.forEach(star => {
     star.addEventListener('click', async function(){
@@ -295,7 +266,6 @@ function addProfileEndorsements(){
       myRating = val;
       updateStars(stars, val);
       document.getElementById('cs-rating-label-'+username).textContent = 'You rated: ' + val + '★';
-      // Refresh avg
       const data = await sheetGet('getRatings', username);
       document.getElementById('cs-avg-'+username).textContent = data.avg;
       document.getElementById('cs-count-'+username).textContent = data.count + ' ratings';
@@ -315,11 +285,9 @@ function addProfileEndorsements(){
       const em = this.dataset.emoji;
       const emData = emojis.find(e => e.e === em);
       if(!emData) return;
-
       const idx = myEmojis.indexOf(em);
       const countSpan = document.getElementById('cs-ec-'+username+'-'+em);
       let count = parseInt(countSpan.textContent) || 0;
-
       if(idx > -1){
         myEmojis.splice(idx, 1);
         this.style.background = 'rgba(255,255,255,.04)';
@@ -353,71 +321,44 @@ function addProfileEndorsements(){
   const shoutSubmit = document.getElementById('cs-shout-submit-'+username);
   const shoutInput = document.getElementById('cs-shout-input-'+username);
   const shoutGrid = document.getElementById('cs-shout-grid-'+username);
-
   if(shoutSubmit && shoutInput){
     shoutSubmit.addEventListener('click', async function(){
       const text = shoutInput.value.trim();
       if(!text) return;
-
       await sheetPost({action:'shoutout', artist:username, visitor_id:visitorId, text});
-
       const div = document.createElement('div');
       div.style.cssText = 'background:#1DB95412;border:1px solid #1DB95425;border-radius:10px;padding:10px;font-size:12px;color:#ddd;animation:csFadeIn .4s ease;';
-      div.innerHTML = `
-        <div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">${text}</div>
-        <div style="font-size:10px;color:#1DB954;display:flex;align-items:center;gap:4px;">
-          <span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>
-          You • Just now
-        </div>
-      `;
-      if(shoutGrid.children.length === 1 && shoutGrid.children[0].textContent.includes('Loading')){
-        shoutGrid.innerHTML = '';
-      }
+      div.innerHTML = '<div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">' + text + '</div><div style="font-size:10px;color:#1DB954;display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>You • Just now</div>';
+      if(shoutGrid.children.length === 1 && shoutGrid.children[0].textContent.includes('Loading')) shoutGrid.innerHTML = '';
       shoutGrid.appendChild(div);
       shoutGrid.scrollTop = shoutGrid.scrollHeight;
-
       shoutInput.value = '';
       shoutForm.style.display = 'none';
     });
-
-    shoutInput.addEventListener('keypress', function(e){
-      if(e.key === 'Enter') shoutSubmit.click();
-    });
+    shoutInput.addEventListener('keypress', function(e){ if(e.key === 'Enter') shoutSubmit.click(); });
   }
 }
 
-/* ─── GOOGLE SHEETS DATA FUNCTIONS ─── */
-
 async function loadData(username, myRating, myEmojis, emojis, visitorId){
   try {
-    // Load ratings
+    console.log('[ChatSong] Loading data from Sheets for ' + username + '...');
     const ratingData = await sheetGet('getRatings', username);
     document.getElementById('cs-avg-'+username).textContent = ratingData.avg;
     document.getElementById('cs-count-'+username).textContent = ratingData.count + ' ratings';
 
-    // Load reactions
     const reactionData = await sheetGet('getReactions', username);
     emojis.forEach(em => {
       const el = document.getElementById('cs-ec-'+username+'-'+em.e);
       if(el) el.textContent = reactionData[em.e] || 0;
     });
 
-    // Load shoutouts
     const shoutData = await sheetGet('getShoutouts', username);
     const grid = document.getElementById('cs-shout-grid-'+username);
     if(grid){
       if(shoutData.length === 0){
         grid.innerHTML = '<div style="text-align:center;color:#666;font-size:12px;padding:20px;">No shoutouts yet. Be the first!</div>';
       } else {
-        grid.innerHTML = shoutData.map(s => `
-          <div style="background:${['#ff550015','#1DB95415','#8A2BE215','#FF444415','#FFD70015','#00BFFF15'][Math.abs(s.visitor.length)%6]};border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;font-size:12px;color:#ddd;">
-            <div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">${s.text}</div>
-            <div style="font-size:10px;color:#888;display:flex;align-items:center;gap:4px;">
-              <span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>
-              ${s.visitor} • ${s.date}
-            </div>
-          </div>
-        `).join('');
+        grid.innerHTML = shoutData.map(s => '<div style="background:' + ['#ff550015','#1DB95415','#8A2BE215','#FF444415','#FFD70015','#00BFFF15'][Math.abs(s.visitor.length)%6] + ';border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;font-size:12px;color:#ddd;"><div style="font-weight:700;color:#fff;margin-bottom:4px;line-height:1.3;">' + s.text + '</div><div style="font-size:10px;color:#888;display:flex;align-items:center;gap:4px;"><span style="width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#1DB954,#8A2BE2);display:inline-block;"></span>' + s.visitor + ' • ' + s.date + '</div></div>').join('');
       }
     }
 
@@ -426,7 +367,6 @@ async function loadData(username, myRating, myEmojis, emojis, visitorId){
       updateStars(stars, myRating);
       document.getElementById('cs-rating-label-'+username).textContent = 'You rated: ' + myRating + '★';
     }
-
     myEmojis.forEach(em => {
       const btn = document.querySelector('.cs-emoji-btn[data-emoji="'+em+'"]');
       const emData = emojis.find(e => e.e === em);
@@ -436,9 +376,9 @@ async function loadData(username, myRating, myEmojis, emojis, visitorId){
         btn.style.color = emData.c;
       }
     });
-
+    console.log('[ChatSong] Data loaded successfully');
   } catch(e){
-    console.error('ChatSong Sheets load error:', e);
+    console.error('[ChatSong] Load error:', e);
     document.getElementById('cs-count-'+username).textContent = 'Error loading';
   }
 }
@@ -452,6 +392,7 @@ function updateStars(stars, val){
 
 /* ─── INIT ─── */
 function init(){
+  console.log('[ChatSong] init() running...');
   addVoiceBtn();
   enrichAudio();
   addMusicTags();
@@ -459,15 +400,27 @@ function init(){
   addProfileEndorsements();
 }
 
-const ob=new MutationObserver(function(){init();});
-ob.observe(document.body,{childList:true,subtree:true});
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded',init);
+// SPA detection: run on initial load AND when URL changes
+let lastUrl = location.href;
+new MutationObserver(() => {
+  const url = location.href;
+  if(url !== lastUrl){
+    lastUrl = url;
+    console.log('[ChatSong] Route changed to:', url);
+    // Reset flags so we can re-attach to new page
+    document.querySelectorAll('.UserPage, .UserCard').forEach(el => delete el.dataset.endorsements);
+    document.querySelectorAll('.UserPage, .UserCard').forEach(el => delete el.dataset.audio);
+    setTimeout(init, 500);
+  }
+}).observe(document, {subtree: true, childList: true});
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', init);
 } else {
   init();
 }
-setTimeout(init,1000);
-setTimeout(init,3000);
+setTimeout(init, 1000);
+setTimeout(init, 3000);
 
-console.log('🎵 ChatSong widgets v4.0 loaded — Google Sheets real-time endorsements');
+console.log('[ChatSong] v4.1 loaded — SPA-aware, waiting for profile...');
 })();
