@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-var SHEETS_URL = "https://script.google.com/macros/s/AKfycbycnW1qXGqcTj9QQjNwPJETLQkMY-4D99vN8YiGU2psR71gNQkhIPExaYnzaqS_Qplf/exec;
+var SHEETS_URL = "https://script.google.com/macros/s/AKfycbycnW1qXGqcTj9QQjNwPJETLQkMY-4D99vN8YiGU2psR71gNQkhIPExaYnzaqS_Qplf/exec";
 var AU = ["soundcloud.com","clyp.it","vocaroo.com","hearthis.at","audiomack.com","bandcamp.com","mixcloud.com","deezer.com"];
 var YU = ["youtube.com","youtu.be","vimeo.com","dailymotion.com"];
 
@@ -49,8 +49,7 @@ function toggleVoice(btn, ar) {
       var blob = new Blob(chunks, {type:"audio/webm"});
       var url = URL.createObjectURL(blob);
       var ta = ar.querySelector("textarea, .ComposerBody");
-      if (ta) ta.value = (ta.value ? ta.value + "
-" : "") + "[Voice note: " + url + "]";
+      if (ta) ta.value = (ta.value ? ta.value + "\n" : "") + "[Voice note: " + url + "]";
       ms.getTracks().forEach(function(t) { t.stop(); });
     };
     mr.start(); btn.innerHTML = "⏹️"; btn.style.background = "#FF4444";
@@ -91,7 +90,7 @@ function addMusicTags() {
     el.dataset.tagged = "1";
     var t = el.textContent;
     var bpm = t.match(/(\d{2,3})\s?BPM/i);
-    var key = t.match(/([A-G][#b]?(?:\s?(?:maj|min|major|minor|m))?)/i);
+    var key = t.match(/\b([A-G][#b]?(?:\s?(?:maj|min|major|minor|m))?)\b/i);
     var tags = [];
     if (bpm) tags.push({t:"🎵 " + bpm[1] + " BPM", c:"#1DB954"});
     if (key) tags.push({t:"🎹 " + key[1], c:"#8A2BE2"});
