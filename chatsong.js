@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 
-var SHEETS_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnSBfrBwdDUUwAOnaPOGt40tuYTDUpncsMImAl7stPuRgDu5h6LViDhrZfAqJm6vvbXoBQl9i3pDAonwlEAZxxfRPvhQgj-MbBWZi24oCAEi_za2K73PrQW55zeh1zNwRldc_Wg1MPbxUGaoXBhgeoPCJ3PX7oG7ceO1ZbT7PtPxKI9svDaMigCgq71nMAdqOr6iogRxBT7VDIueMIeGpGv0UhJhKaOkTv9yCGvCx8maKQZ-04zKMQv-rOF_13bQ6qFJByuV8-dWoUpaYiloTkXQY9Ihcw&lib=MqzuHtAm83C3BSyHE9A5j0E-DGdiQLF-5";
+var SHEETS_URL = "https://script.google.com/macros/s/AKfycbycnW1qXGqcTj9QQjNwPJETLQkMY-4D99vN8YiGU2psR71gNQkhIPExaYnzaqS_Qplf/exec;
 var AU = ["soundcloud.com","clyp.it","vocaroo.com","hearthis.at","audiomack.com","bandcamp.com","mixcloud.com","deezer.com"];
 var YU = ["youtube.com","youtu.be","vimeo.com","dailymotion.com"];
 
