@@ -15,7 +15,7 @@ function sheetGet(action, artist) {
 function sheetPost(data) {
   return fetch(SHEETS_URL, {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: {"Content-Type": "text/plain"}, // Veilig voor Google Apps Script
     body: JSON.stringify(data)
   }).then(function(r){return r.json();});
 }
