@@ -100,7 +100,8 @@ function init(){
     }
   });
 }
-// Door dit:
+
+// SPA fix
 var _lastPath = "";
 
 function tryInit() {
@@ -119,6 +120,7 @@ setInterval(function(){
   }
 }, 300);
 
-// Eerste load
 setTimeout(init, 1500);
 setTimeout(init, 3000);
+console.log("[ChatSong] v6 loaded");
+})();
