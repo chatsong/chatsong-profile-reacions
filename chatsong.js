@@ -100,8 +100,20 @@ function init(){
     }
   });
 }
+// Door dit:
+var _lastPath = "";
+setInterval(function(){
+  var path = window.location.pathname;
+  if(path !== _lastPath){
+    _lastPath = path;
+    // Reset oude profiel zodat init opnieuw draait
+    var old = document.querySelector(".UserPage[data-cs], .UserCard[data-cs]");
+    if(old) delete old.dataset.cs;
+    setTimeout(init, 800);
+    setTimeout(init, 2000);
+  }
+}, 400);
 
-setTimeout(init,1500);
-setTimeout(init,4000);
-console.log("[ChatSong] v5 loaded - shoutouts fixed");
-})();
+// Eerste load
+setTimeout(init, 1500);
+
