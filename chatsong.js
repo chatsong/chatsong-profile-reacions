@@ -109,18 +109,19 @@ function tryInit() {
   if (old) delete old.dataset.cs;
   init();
 }
+var _lastPath = "";
 
 setInterval(function(){
   var path = window.location.pathname;
   if (path !== _lastPath) {
     _lastPath = path;
-    setTimeout(tryInit, 500);
-    setTimeout(tryInit, 1200);
-    setTimeout(tryInit, 2500);
+    var old = document.querySelector(".UserPage[data-cs], .UserCard[data-cs]");
+    if (old) delete old.dataset.cs;
+    setTimeout(init, 800);
   }
 }, 300);
 
 setTimeout(init, 1500);
-setTimeout(init, 3000);
 console.log("[ChatSong] v6 loaded");
 })();
+
