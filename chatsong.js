@@ -102,18 +102,23 @@ function init(){
 }
 // Door dit:
 var _lastPath = "";
+
+function tryInit() {
+  var old = document.querySelector(".UserPage[data-cs], .UserCard[data-cs]");
+  if (old) delete old.dataset.cs;
+  init();
+}
+
 setInterval(function(){
   var path = window.location.pathname;
-  if(path !== _lastPath){
+  if (path !== _lastPath) {
     _lastPath = path;
-    // Reset oude profiel zodat init opnieuw draait
-    var old = document.querySelector(".UserPage[data-cs], .UserCard[data-cs]");
-    if(old) delete old.dataset.cs;
-    setTimeout(init, 800);
-    setTimeout(init, 2000);
+    setTimeout(tryInit, 500);
+    setTimeout(tryInit, 1200);
+    setTimeout(tryInit, 2500);
   }
-}, 400);
+}, 300);
 
 // Eerste load
 setTimeout(init, 1500);
-
+setTimeout(init, 3000);
